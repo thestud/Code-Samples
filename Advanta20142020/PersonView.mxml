@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:AdvantaGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:panelMember="com.advanta.view.panelMember.*"
+		 xmlns:components="com.advanta.components.*"
+		 width="1300" height="770"
+		 initialize="onInitialized();" 
+		 creationComplete="onCreationComplete();" 
+		 tabEnabled="true" 
+		 focusEnabled="true" 
+		 hasFocusableChildren="true" 
+		 control1="mainNavigator.selectedChild = caseLoad;focusManager.setFocus(dummyTextInput);"
+		 control2="mainNavigator.selectedChild = addresses;focusManager.setFocus(dummyTextInput);"
+		 control3="mainNavigator.selectedChild = phoneEmail;focusManager.setFocus(dummyTextInput);" 
+		 control4="mainNavigator.selectedChild = contacts;focusManager.setFocus(dummyTextInput);"
+		 control5="mainNavigator.selectedChild = evaluations;focusManager.setFocus(dummyTextInput);"
+		 control6="mainNavigator.selectedChild = MCLE;focusManager.setFocus(dummyTextInput);"
+		 control7="mainNavigator.selectedChild = applications;focusManager.setFocus(dummyTextInput);"
+		 controlZ="panelIndex.switchToNewPanelMember();"
+		 tabChildren="true"  
+		 focusIn="onFocusIn(event);"
+		 tabFocusEnabled="true" 
+		 keyDown="onCloseByKey(event);"
+		 implements="mx.managers.IFocusManagerComponent">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.advanta.controllers.AttorneyController;
+			import com.advanta.controllers.ChronoController;
+			import com.advanta.controllers.ReferenceController;
+			import com.advanta.controllers.SecurityController;
+			import com.advanta.controllers.UserController;
+			import com.advanta.events.ApplicationEvent;
+			import com.advanta.events.AttorneyEvent;
+			import com.advanta.events.PanelMemberEvent;
+			import com.advanta.events.SwapZIndexSectionEvent;
+			import com.advanta.models.ApplicationModel;
+			import com.advanta.models.AttorneyModel;
+			import com.advanta.models.EventModel;
+			import com.advanta.models.PanelMemberModel;
+			import com.advanta.models.SecurityModel;
+			import com.advanta.models.ServiceModel;
+			import com.advanta.view.panelMember.itemrenderers.CaseLoadItemRenderer;
+			import com.advanta.view.panelMember.itemrenderers.DeleteAddressItemRenderer;
+			import com.advanta.view.panelMember.itemrenderers.DeleteEmailItemRenderer;
+			import com.advanta.view.panelMember.itemrenderers.DeletePhoneItemRenderer;
+			
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.IFocusManager;
+			import mx.managers.IFocusManagerComponent;
+			
+			private var attorneyController:AttorneyController = AttorneyController.getInstance(); 
+			
+			[Bindable]
+			private var applicationModel:ApplicationModel = ApplicationModel.getInstance();
+			
+			[Bindable]
+			private var attorneyModel:AttorneyModel = AttorneyModel.getInstance(); 
+			
+			private var chronoController:ChronoController = ChronoController.getInstance(); 
+			
+			private var eventModel:EventModel = EventModel.getInstance();
+			
+			[Bindable]
+			private var panelMemberModel:PanelMemberModel = PanelMemberModel.getInstance(); 
+			
+			public var referenceController:ReferenceController = ReferenceController.getInstance(); 
+			
+			private var serviceModel:ServiceModel = ServiceModel.getInstance();
+			
+			private var userController:UserController = UserController.getInstance(); 
+			
+			
+			/*override public function get defaultButton():IFlexDisplayObject
+			{
+				return null;
+			}
+			
+			override public function set defaultButton(value:IFlexDisplayObject):void
+			{
+			}*/
+			
+			override public function get focusManager():IFocusManager
+			{
+				var ifm:IFocusManager;
+				
+				if(super.focusManager)
+				{
+					ifm = super.focusManager;
+				}
+				
+				if(!ifm)
+				{
+					ifm = FlexGlobals.topLevelApplication.focusManager;
+				}
+				return ifm;
+			}
+			
+			private function onFocusIn(event:FocusEvent):void
+			{
+				trace();
+			}
+			
+			private function checkWindowDepth():void
+			{
+				eventModel.dispatchEvent(new SwapZIndexSectionEvent(panelMemberModel.moduleLoader));
+			}
+			
+			private function close():void
+			{
+				// tkp resetting the open state. 
+				eventModel.dispatchEvent(new PanelMemberEvent(PanelMemberEvent.REMOVE_PANEL_MEMBER_LISTENERS)); 
+				
+				eventModel.removeEventListener(AttorneyEvent.CLOSE_PANEL_MEMBER_FORM, onClosePanelMemberForm); 
+				attorneyModel.openState = AttorneyModel.OPEN_RECENT;
+				eventModel.removeEventListener(AttorneyEvent.PANEL_LOADED, onEnabled);
+				eventModel.removeEventListener(AttorneyEvent.LONG_CALL, onDisabled);
+				
+				eventModel.removeEventListener(ApplicationEvent.THEME_CHANGE, onThemeChange);
+				
+				stage.removeEventListener(KeyboardEvent.KEY_DOWN, onCloseByKey);
+				
+				SecurityController.getInstance().removeRowLock(ApplicationModel.PANEL, SecurityModel.getInstance().panelKeyValue); 
+				
+				eventModel.dispatchEvent(new PanelMemberEvent(PanelMemberEvent.UNLOAD_PANEL_MEMBER_MODEL)); 
+				
+				removeEventListener(KeyboardEvent.KEY_UP, onKeyUp); 
+			}
+
+		]]>
+	</fx:Script>
+	<s:Rect id="background" width="100%" height="100%">
+		<s:fill><s:SolidColor color="{applicationModel.backgroundColor}" /></s:fill>
+	</s:Rect>
+	<s:TextInput id="dummyTextInput" includeInLayout="false" visible="false" />
+	<s:VGroup width="100%" height="100%">
+		<s:VGroup width="100%" height="350">
+			<panelMember:Index id="panelIndex" width="100%" />
+		</s:VGroup>
+		<mx:TabNavigator width="100%" height="413" id="mainNavigator" mouseDown="userController.bumpSession();"  backgroundAlpha="0" >
+			<s:NavigatorContent label="Caseload" id="caseLoad" width="100%" height="100%" toolTip="Ctrl+1" >
+				<panelMember:CaseLoad id="caseLoadContent" width="100%" height="100%" 
+									  caseLoads="{attorneyModel.caseLoads}" 
+									  caseLoadItemRenderer="{new ClassFactory(CaseLoadItemRenderer)}" 
+									  filterAll="caseLoadContent.caseLoads = attorneyModel.caseLoads;caseLoadContent.caseLoads.refresh(); " 
+									  filterOpen="caseLoadContent.caseLoads = attorneyModel.openCases;caseLoadContent.caseLoads.refresh(); " 
+									  filterPreAOB="caseLoadContent.caseLoads = attorneyModel.preAOBCases;caseLoadContent.caseLoads.refresh();" 
+									  sortCaseNumberDesc="attorneyController.findCasesByPanelID('CaseNbr DESC');" 
+									  sortOrderDateDesc="attorneyController.findCasesByPanelID('PanelRecommendedDT DESC');" 
+									  sortClientFullName="attorneyController.findCasesByPanelID('');" />
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Addresses" id="addresses" width="100%" height="100%" toolTip="Ctrl+2">
+				<panelMember:Addresses keyDown="onKeyDown(event);" 
+									   tabEnabled="true" hasFocusableChildren="true" 
+									   focusEnabled="true" 
+									   deleteAddressRenderer="{new ClassFactory(DeleteAddressItemRenderer)}" 
+									   editMode="{panelMemberModel.editMode}" 
+									   addresses="{attorneyModel.addresses}" 
+									   location="{ApplicationModel.PANEL}"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Phones Email" id="phoneEmail" toolTip="Ctrl+3">
+				<panelMember:PhonesEmail keyDown="onKeyDown(event);" 
+										 phones="{attorneyModel.phones}" 
+										 emails="{attorneyModel.emails}" 
+										 phoneDeleteRenderer="{new ClassFactory(DeletePhoneItemRenderer)}" 
+										 emailDeleteRenderer="{new ClassFactory(DeleteEmailItemRenderer)}" 
+										 editMode="{panelMemberModel.editMode}" />
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Contacts" id="contacts" toolTip="Ctrl+4">
+				<panelMember:Contacts /> 
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Evaluations" id="evaluations" toolTip="Ctrl+5">
+				<panelMember:Evaluations editable="false" location="{ApplicationModel.PANEL}"  />
+			</s:NavigatorContent>
+			<s:NavigatorContent label="MCLE" id="MCLE" toolTip="Ctrl+6">
+				<panelMember:MCLE keyDown="onKeyDown(event);" />
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Applications" id="applications" toolTip="Ctrl+7">
+				<panelMember:Applications keyDown="onKeyDown(event);" />
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+	</s:VGroup>	
+</components:AdvantaGroup>
